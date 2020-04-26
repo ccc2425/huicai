@@ -7,8 +7,8 @@
             <img src="../../assets/image/i12.png" alt="">
           </div>
           <div class="fl info">
-            <div>李小晨 13540861223</div>
-            <div class="address co999">四川省成都市高新区天府五街200号菁蓉汇1B502
+            <div>{{info.add_name}} {{info.add_tel}}</div>
+            <div class="address co999">{{info.address}}
             </div>
           </div>
         </div>
@@ -18,54 +18,100 @@
           <div>积分支付</div>
       </div>
       <div class="mb10">
-        <item_detail :type="type" :beizhu="beizhu"></item_detail>
+        <item_detail :type="type" :beizhu="beizhu" :items="items"></item_detail>
       </div>
-      <div class="box padb50">
+      <div class="box">
         <div class="list flex_bettwen">
           <div>商品金额</div>
-          <div>99.00HC</div>
+          <div>{{info.itme_price}}HC</div>
         </div>
         <div class="list flex_bettwen">
           <div>运费</div>
-          <div>10.00HC</div>
+          <div>{{info.freight_price}}HC</div>
         </div>
         <div class="list flex_bettwen">
-          <div>运费</div>
-          <div class="interval"><span>10</span>.00HC</div>
+          <div>实付积分</div>
+          <div class="interval"><span>{{info.balance}}</span>HC</div>
         </div>
       </div>
       <div class="box mab60">
           <div class="orderform pr">
             <span class="order_name">订单编号</span>
-            <span class="order_time">23658954622</span>
-            <span class="copy">复制</span>
+            <span class="order_time">{{info.order_id}}</span>
+            <span class="copy" :data-clipboard-text="info.order_id" @click="copy">复制</span>
           </div>
           <div class="orderform">
             <span class="order_name">下单时间</span>
-            <span class="order_time">2020-03-04  11:25</span>
+            <span class="order_time">{{info.createtime}}</span>
           </div>
       </div>
       <div class="btn_box">
-        <div class="btn"><img src="../../assets/image/i13.png" alt="">订单客服</div>
+        <div class="btn" @click="openserve(info.order_id)"><img src="../../assets/image/i13.png" alt="">订单客服</div>
       </div>
     </div>
 </template>
 
 <script>
+    import Clipboard from 'clipboard'
     import headerBack from "../../components/headerBack"
     import item_detail from "../../components/item_detail"
+    import { Toast  } from 'mint-ui';
     export default {
       name: "orderDetail",
       components:{
         headerBack,
-        item_detail
+        item_detail,
+        Toast
       },
       data(){
           return{
             title:'订单详情',
             type:false,
             beizhu:'线头都处理好',
+            order_id:this.$route.query.id,
+            info:[],
+            items:[],
+            time:'',
           }
+      },
+      mounted() {
+        this.getmain()
+      },
+      methods:{
+        getmain(){
+          this.$('user/orderdes',{order_id:this.order_id},res=>{
+            console.log(res)
+            if (res.code === 200){
+              this.info = res.data
+              this.items = res.data.items
+            }
+          })
+        },
+        copy(){
+          var clipboard = new Clipboard('.copy')
+          clipboard.on('success', e => {
+            Toast({
+              message: '复制成功'
+            })
+            //释放内存
+            clipboard.destroy()
+          })
+          clipboard.on('error', e => {
+            // 不支持复制
+            Toast({
+              message: '手机权限不支持复制功能'
+            })
+            // 释放内存
+            clipboard.destroy()
+          })
+        },
+        openserve(id){
+          let list = this.items[0];
+          list.createtime = this.info.createtime
+          list.order_id = this.info.order_id
+          localStorage.setItem('order_item',JSON.stringify(list))
+          this.$router.push('/shop/service?id='+id)
+        }
       }
     }
 </script>

@@ -5,19 +5,19 @@
       </div>
       <div class="list" v-for="(item,i) in list">
         <div class="forms">
-            <div>{{item.name}} {{item.tel}}</div>
-            <div class="address">{{item.adress}}</div>
+            <div>{{item.uname}} {{item.mobile}}</div>
+            <div class="address">{{item.address_des}}</div>
           </div>
         <div class="bottom flex_bettwen">
           <div v-if="index == i" class="font_color">
             <i class="iconfont">&#xe626;</i>默认地址
           </div>
-          <div v-if="index != i" @click="choseThis(i)">
+          <div v-if="index != i" @click="choseThis(i,item.id)">
             <i class="iconfont">&#xe62d;</i>设为默认地址
           </div>
           <div>
             <span class="edit" @click="addAddress(i)"><i class="iconfont">&#xe685;</i>编辑</span>
-            <span @click="rmThis(i)"><i class="iconfont">&#xe73d;</i>删除</span>
+            <span @click="rmThis(i,item.id)"><i class="iconfont">&#xe73d;</i>删除</span>
           </div>
         </div>
       </div>
@@ -38,22 +38,37 @@
         return{
           title:'收货地址',
           index:0,
-          list:[
-            {name:'李小晨',tel:'13540861223',adress:'四川省 成都市 高新区 天府五街菁蓉国际广场1B-502',is_default:1},
-            {name:'李小晨1',tel:'13540861223',adress:'四川省 成都市 高新区 天府五街菁蓉国际广场1B-502',is_default:0},
-            {name:'李小晨2',tel:'13540861223',adress:'四川省 成都市 高新区 天府五街菁蓉国际广场1B-502',is_default:0},
-          ]
+          list:[]
         }
       },
+      mounted(){
+        this.getmain()
+      },
       methods:{
-        choseThis(i){
-          this.index = i
-          this.list[i].is_default = 1
+        getmain(){
+          this.$('user/addresslist',{},res=>{
+            console.log(res)
+            if (res.code === 200) {
+              this.list = res.data
+            }
+          })
         },
-        rmThis(i){
-          console.log(this.list)
-          this.list.splice(i,1)
-          console.log(this.list)
+        choseThis(i,id){
+          this.index = i
+          this.$('user/defaddress',{address_id:id},res=>{
+            console.log(res)
+            if (res.code === 200) {
+              this.list[i].is_def = 1
+            }
+          })
+        },
+        rmThis(i,id){
+          this.$('user/deladdress',{address_id:id},res=>{
+            // console.log(res)
+            if (res.code === 200) {
+              this.list.splice(i,1)
+            }
+          })
         },
         addAddress (i) {
           if (i === -1) {

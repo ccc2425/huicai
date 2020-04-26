@@ -23,95 +23,79 @@
       </div>
       <div class='add_border flex_bettwen'>
         <div>设为默认地址</div>
-        <img @click="qiehuan(0)" src="../../assets/image/i5.png" v-show="datas.default === 1">
-        <img @click="qiehuan(1)" v-show="datas.default === 0" src="../../assets/image/i4.png">
+        <img @click="qiehuan(1)" src="../../assets/image/i5.png" v-show="datas.default === 0">
+        <img @click="qiehuan(0)" v-show="datas.default === 1" src="../../assets/image/i4.png">
       </div>
       <div class="foot">
-        <div class="btn">保存并使用</div>
+        <div class="btn" @click="upData">保存并使用</div>
       </div>
       <div class='xuanzhe' v-show="head">
         <ul>
-          <li class='jiantou' v-for="(item,index) in options" :key="index" @click="shen(item.value,item.label)">{{item.label}}</li>
+          <li class='jiantou' v-for="(item,index) in options" :key="index" @click="shen(item.id,item.name)">{{item.name}}</li>
         </ul>
         <ul>
-          <li class='jiantou' v-for="(item,index) in options1" :key="index" @click="shi(item.value,item.label)">{{item.label}}</li>
+          <li class='jiantou' v-for="(item,index) in options1" :key="index" @click="shi(item.id,item.name)">{{item.name}}</li>
         </ul>
         <ul>
-          <li class='jiantou' v-for="(item,index) in options2" :key="index" @click="qu(item.value,item.label)">{{item.label}}</li>
+          <li class='jiantou' v-for="(item,index) in options2" :key="index" @click="qu(item.id,item.name)">{{item.name}}</li>
         </ul>
       </div>
+      <tishi :tishi="tishi" :tishiShow="tishiShow"></tishi>
     </div>
 </template>
 
 <script>
     import headerBack from "../../components/headerBack"
+    import tishi from "../../components/tishi"
     export default {
       name: "add_address",
       components:{
-        headerBack
+        headerBack,
+        tishi
       },
       data() {
         return {
           title: '新增收货地址',
           datas: {
+            address_id:'',
             address: '',
             tel: '',
-            name: localStorage.getItem('user'),
-            default: 1,
+            name: '',
+            default: 0,
           },
+          tishi:'',
+          tishiShow:false,
           head: false,
           ad_detail:'',
-          options: [
-            {label:'福建',value:'12'},
-            {label:'四川',value:'12'},
-            {label:'山东',value:'12'},
-            {label:'上海',value:'12'},
-            {label:'北京',value:'12'},
-            {label:'福建',value:'12'},
-            {label:'四川',value:'12'},
-            {label:'山东',value:'12'},
-            {label:'上海',value:'12'},
-            {label:'北京',value:'12'},
-          ],
-          options1: [
-            {label:'福建1',value:'12'},
-            {label:'四川1',value:'12'},
-            {label:'山东1',value:'12'},
-            {label:'上海1',value:'12'},
-            {label:'北京1',value:'12'},
-            {label:'福建1',value:'12'},
-            {label:'四川1',value:'12'},
-            {label:'山东1',value:'12'},
-            {label:'上海1',value:'12'},
-            {label:'北京1',value:'12'},
-          ],
-          options2: [
-            {label:'福建2',value:'12'},
-            {label:'四川3',value:'12'},
-            {label:'山东3',value:'12'},
-            {label:'上海3',value:'12'},
-            {label:'北京3',value:'12'},
-            {label:'福建2',value:'12'},
-            {label:'四川3',value:'12'},
-            {label:'山东3',value:'12'},
-            {label:'上海3',value:'12'},
-            {label:'北京3',value:'12'},
-          ],
+          options: [],
+          options1: [],
+          options2: [],
           detail_area:[],
+          province_id:'',
+          city_id:'',
+          area_id:'',
         }
       },
-      created () {
+      mounted () {
         if (this.$route.query.bian === 'true') {
+          console.log(localStorage.getItem('add_address'))
           let j = JSON.parse(localStorage.getItem('add_address'))
-          this.datas.address = j.address
-          this.datas.default = Number(j.is_default)
-          this.datas.tel = j.tel
-          this.datas.name = j.name
-          this.addxian.push(j.detailed)
+          console.log(j)
+          this.datas.address_id = j.id
+          this.datas.address = j.address_set
+          this.datas.default = Number(j.is_def)
+          this.datas.tel = j.mobile
+          this.datas.name = j.uname
+          this.province_id = j.province_id
+          this.city_id = j.city_id
+          this.area_id = j.area_id
+          this.ad_detail = j.address
         }
-        // this.$('/need8/getarea', {}, res => {
-        //   this.options = res.data
-        // })
+        this.$('common/getarealist', {}, res => {
+          console.log(res)
+          this.options = res.data
+          console.log(this.options)
+        })
       },
       methods:{
         qiehuan (i) {
@@ -123,25 +107,51 @@
         shi (i, e) {
           this.detail_area.splice(1, 2, e)
           this.datas.address = this.detail_area
-          // this.$('/need8/getarea', { aid: i }, res => {
-          //   this.options2 = res.data
-          // })
+          this.city_id = i
+          this.area_id = ''
+          this.$('common/getarealist', { aid: i }, res => {
+            this.options2 = res.data
+          })
         },
         qu (i, e) {
           this.detail_area.splice(2, 1, e)
-          // this.datas.aid = i
+          this.datas.aid = i
+          this.area_id = i
           this.head = false
           this.datas.address = this.detail_area
         },
         shen (i, e) {
-          // this.options2 = []
+          this.options2 = []
           this.detail_area = []
           this.detail_area.push(e)
           this.datas.address = this.detail_area
-          // this.$('/need8/getarea', { aid: i }, res => {
-          //   this.options1 = res.data
-          // })
+          this.province_id = i
+          this.city_id = ''
+          this.area_id = ''
+          this.$('common/getarealist', { aid: i }, res => {
+            console.log(res)
+            this.options1 = res.data
+          })
         },
+        upData(){
+          this.$('user/setaddress',{address_id:this.datas.address_id,uname:this.datas.name,address:this.ad_detail,mobile:this.datas.tel,province_id:this.province_id,city_id:this.city_id,area_id:this.area_id,is_def:this.datas.default},res=>{
+            console.log(res)
+            if (res.code === 200) {
+              this.tishi = '保存成功'
+              this.tishiShow = true
+              setTimeout(()=>{
+                this.tishiShow = false
+                this.$router.go(-1)
+              },1000)
+            }else {
+              this.tishi = res.msg
+              this.tishiShow = true
+              setTimeout(()=>{
+                this.tishiShow = false
+              },1000)
+            }
+          })
+        }
       }
     }
 </script>

@@ -3,43 +3,48 @@
       <div class="header">
         <i @click="back" class="iconfont icon_l">&#xe601;</i>
         <p>广告</p>
-        <span class="icon_r" @click="showAlert(2)">竞价</span>
+        <span v-if="is_self" class="icon_r" @click="showAlert(2)">竞价</span>
       </div>
       <div class="zhanwei"></div>
       <div v-if="tipShow" class="tip">
         可退出广告倒计时：{{time}}s <i class="iconfont tis" @click="closeAd">&#xe632;</i>
       </div>
-      <div class="content">
-        <div class="title">中考冲刺数理化课程开售</div>
-        <div class="time">发布时间：2020-02-27 16:26</div>
+      <div v-if="is_self" class="content">
+        <div class="title">{{list.title}}</div>
+        <div class="time">发布时间：{{list.createtime}}</div>
         <div class="img_box">
-          <img src="../../assets/image/ban.png" alt="">
-          <img src="../../assets/image/ban.png" alt="">
-          <img src="../../assets/image/ban.png" alt="">
+          <img :src="list.master_img" alt="">
         </div>
         <div class="text">
-          <p>开设初中生语,数,英,理化全科目课程,线上老师实时教学,针对性辅导,线下班主任+学科心理素质+自习+规划师。开设初中生语,数,英,理化全科目课程。</p>
-          <p>开设初中生语,数,英,理化全科目课程,线上老师实时教学,针对性辅导,线下班主任+学科心理素质+自习+规划师。</p>
+          <p>{{list.content}}</p>
         </div>
       </div>
-      <div class="foot">
+      <div v-if="!is_self" class="content1 ">
+        <div class="title">{{list.title}}</div>
+        <div class="time">发布时间：{{list.createtime}}</div>
+        <div class="img_box">
+          <img :src="list.master_img" alt="">
+        </div>
+        <div class="text">
+          <p v-html="texts"></p>
+        </div>
+      </div>
+      <div v-if="is_self" class="foot">
         <div v-if="btnShow" class="btn" @click="showAlert(1)">重新编辑 <i class="iconfont">&#xe676;</i></div>
         <div class="inform pr">
-          <div>已浏览：2346</div>
-          <div>当前收益：2346</div>
-          <div class="b-r"></div>
+          <div>当前收益：{{list.ad_inc}}</div>
         </div>
       </div>
       <tishi :tishi="tishi" :tishiShow="tishiShow"></tishi>
-      <alert1 v-if="alert1Show" :text="alert1Text" @getAlert1="getAlert1btn"></alert1>
-      <alert2 v-if="alert2Show" @getAlert2="getAlert2btn"></alert2>
+      <alert1 v-if="alert1Show" :text="alert1Text" @getAlert1="getAlert1btn" :ad_id="ad_id"></alert1>
+      <alert2 v-if="alert2Show" @getAlert2="getAlert2btn" :ad_id="ad_id"></alert2>
     </div>
 </template>
 
 <script>
     import tishi from "../../components/tishi"
-    import alert1 from "../../components/alert1"
-    import alert2 from "../../components/alert2"
+    import alert1 from "../../components/alert/alert1"
+    import alert2 from "../../components/alert/alert2"
     export default {
       name: "ad_detail",
       components:{
@@ -49,8 +54,8 @@
       },
       data(){
         return{
-          time:3,
-          btnTime:10,
+          time:0,
+          btnTime:900,
           btnShow:true,
           tipShow:true,
           tishiShow:false,
@@ -58,24 +63,37 @@
           alert1Text:'重新编辑广告后会重新扣除对应积分，请确定是否重新编辑广告？',
           alert1Show:false,
           alert2Show:false,
+          ad_id:this.$route.query.id,
+          type:this.$route.query.type,
+          list:[],
+          is_self:false,
+          closeTime:null,//倒计时广告
+          closeBtn:null,//按钮倒计时
+          texts:'',
         }
       },
       mounted(){
-        var closeTime = setInterval(()=>{
-          this.time --
-          if (this.time <=0){
-            clearInterval(closeTime)
-          }
-        },1000)
-        var closeBtn = setInterval(()=>{
-          this.btnTime --
-          if (this.btnTime <=0){
-            this.btnShow = false
-            clearInterval(closeBtn)
-          }
-        },1000)
+        this.getmain()
       },
       methods:{
+        getmain(){
+          this.$('advert/info',{ad_id:this.ad_id,type:this.type},res=>{
+            // console.log(res)
+            if (res.code === 200){
+              this.list = res.data
+              this.time = res.data.see_time
+              this.texts = res.data.content
+              this.timeout()
+              this.texts=this.texts.replace(/\n/g,"<br/>")
+              // console.log(this.texts)
+              if (res.data.is_self == 1) {
+                this.is_self = true
+              }else {
+                this.is_self = false
+              }
+            }
+          })
+        },
         back(){
           this.$router.go(-1)
         },
@@ -102,6 +120,11 @@
         },
         getAlert1btn(data){
           this.alert1Show = false
+          console.log(data)
+          if (data){
+            localStorage.setItem('ad_detail', JSON.stringify(this.list))
+            this.$router.push('createad?ad_id='+this.ad_id)
+          }
           this.allowScroll()
         },
         getAlert2btn(data){
@@ -118,6 +141,32 @@
         stopScroll(){
           document.body.style.overflow = 'hidden'
           document.addEventListener('touchmove', this.bodyScroll, false)
+        },
+        timeout(){
+          this.closeTime = setInterval(()=>{
+            this.time --
+            if (this.time <=0){
+              this.$('advert/log',{ad_id:this.ad_id},res=>{
+                // console.log(res)
+              })
+              clearInterval(this.closeTime)
+            }
+          },1000)
+          this.closeBtn = setInterval(()=>{
+            this.btnTime --
+            if (this.btnTime <=0){
+              this.btnShow = false
+              clearInterval(this.closeBtn)
+            }
+          },1000)
+        }
+      },
+      destroyed(){
+        if (this.closeTime){
+          clearInterval(this.closeTime)
+        }
+        if (this.closeBtn){
+          clearInterval(this.closeBtn)
         }
       }
     }
@@ -171,6 +220,12 @@
   }
   .content{
     padding: 18px 37px 110px;
+    background: #FFFFFF;
+  }
+  .content1{
+    padding: 18px 37px;
+    background: #FFFFFF;
+    min-height: calc(100vh - 65px);
   }
   .title{
     font-size: 20px;
@@ -203,25 +258,25 @@
     color: #ffffff;
   }
   .inform{
-    display: flex;
-    justify-content: space-between;
+    /*display: flex;*/
+    /*justify-content: space-between;*/
     background: rgba(0,0,0,0.6);
     padding: 0 7px;
     line-height: 44px;
     height: 44px;
   }
-  .inform>div{
-    width: 50%;
-  }
-  .b-r{
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%,-50%);
-    width: 1px!important;
-    height: 14px;
-    background: #FFFFFF;
-  }
+  /*.inform>div{*/
+  /*  width: 50%;*/
+  /*}*/
+  /*.b-r{*/
+  /*  position: absolute;*/
+  /*  left: 50%;*/
+  /*  top: 50%;*/
+  /*  transform: translate(-50%,-50%);*/
+  /*  width: 1px!important;*/
+  /*  height: 14px;*/
+  /*  background: #FFFFFF;*/
+  /*}*/
   .btn{
     height: 50px;
     line-height: 50px;

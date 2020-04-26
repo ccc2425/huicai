@@ -11,7 +11,7 @@
             <i @click="add" class="iconfont icon_add">&#xe621;</i>
           </div>
         </div>
-        <div class="integral">当前积分余额：2000</div>
+        <div class="integral">当前积分余额：{{score}}</div>
       </div>
       <div class="text">
         竞价规则：所有发布上线的广告可重新进入竞价操作，广告位排名可以自由竞价，按照积分由高至低排名，同等积分按照广告投放的时间顺序排名。
@@ -21,15 +21,29 @@
         <div class="btn_sure" @click="sure">确定</div>
       </div>
     </div>
+    <alert4 v-if="alertShow" @getAlert="fromAlert" @getAlertClose="close" :tip="tip" :tipShow="tipShow"></alert4>
   </div>
 </template>
 
 <script>
+  import { MessageBox,Toast  } from 'mint-ui'
+  import alert4 from "./alert4"
   export default {
     name: "alert2",
+    props:['ad_id'],
+    components:{
+      MessageBox,
+      Toast,
+      alert4,
+    },
     data(){
       return{
-        ipt:10
+        ipt:10,
+        score:localStorage.getItem('score'),
+        alertShow:false,
+        password:'',
+        tip:'',
+        tipShow:false,
       }
     },
     methods:{
@@ -43,12 +57,42 @@
       add(){
         this.ipt ++
       },
+      close(){
+        this.alertShow = false
+      },
       cansel(){
         this.$emit('getAlert2',false)
       },
       sure(){
-        this.$emit('getAlert2',false)
+        let that = this
+        if (localStorage.getItem('is_paypwd') == 0){
+          MessageBox.confirm('请先设置交易密码').then(action => {
+            that.$router.push('/mine/set_password')
+          });
+        } else {
+          this.alertShow = true
+        }
       },
+      fromAlert(data) {
+        this.password = data
+        this.$('advert/bid',{trade_pwd:this.password,ad_id:this.ad_id,bid_score:this.ipt},res=>{
+          // console.log(res)
+          if (res.code === 200){
+            localStorage.setItem('score',this.score - this.ipt)
+            Toast({
+              message: res.msg,
+              position: 'middle',
+              duration: 500
+            });
+            setTimeout(()=>{
+              this.$emit('getAlert2',false)
+            },500)
+          }else {
+            this.tip = res.msg
+            this.tipShow = true
+          }
+        })
+      }
     }
   }
 </script>

@@ -3,40 +3,48 @@
       <div class="header">
         <div class="search">
           <div class="head_img_l"><img src="../assets/image/h1.png" alt=""></div>
-          <div class="ipt"><i class="iconfont">&#xe638;</i> 搜索感兴趣的商品</div>
+          <div class="ipt" @click="openSearch"><i class="iconfont">&#xe638;</i> 搜索感兴趣的商品</div>
         </div>
         <div class="classfy_box pr">
           <div class="classfy_list" ref="classfyScroll">
-            <div v-for="(item,i) in classfy" :class="{active:index_classfy === i}" class="classfy" @click="checkClassfy(i)">{{item}}</div>
+            <div v-for="(item,i) in classfy" :class="{active:index_classfy === i}" class="classfy" @click="checkClassfy(i,item.id)">{{item.name}}</div>
           </div>
-          <div class="classfy_img" @click="openMore"><img src="../assets/image/i9.png" alt=""></div>
+          <div v-if="hide" class="classfy_img" @click="openMore"><img src="../assets/image/i9.png" alt=""></div>
         </div>
-<!--        <div v-if="moreShow" class="more_box">-->
-<!--          <div v-for="(item,i) in more" class="more" :class="{more_active:index_classfy === i}" @click="checkClassfy(i)">-->
-<!--            <div class="more_img">-->
-<!--              <img :src="item.img" alt="">-->
-<!--            </div>-->
-<!--            <div>{{item.text}}</div>-->
-<!--          </div>-->
-<!--        </div>-->
       </div>
       <div class="zhanwei"></div>
-      <banner></banner>
-      <div class="recond_box">
-        <div v-for="item in recond" class="recond">
-          <div class="recond_img">
-            <img :src="item.img" alt="">
+      <div class="bbbx">
+        <mt-loadmore :top-method="loadTop" @top-status-change="handleTopChange" :autoFill="false" :bottom-method="loadBottom" :bottom-all-loaded="allLoaded" ref="loadmore">
+          <div v-if="bannerShow">
+            <banner :banner="banner"></banner>
           </div>
-          <div>{{item.text}}</div>
-        </div>
-      </div>
-      <div class="box">
-        <div class="tit">
-          <img src="../assets/image/t1.png" alt="">
-        </div>
-        <div>
-          <shopList></shopList>
-        </div>
+          <div v-if="hide">
+            <div v-if="index_classfy==0" class="recond_box">
+              <div v-for="(item,i) in recond" class="recond" @click="checkClassfy(i+1,item.id)">
+                <div class="recond_img">
+                  <img :src="item.pic" alt="">
+                </div>
+                <div>{{item.name}}</div>
+              </div>
+            </div>
+            <div v-if="index_classfy!=0"  class="recond_box">
+            <div v-for="item in recond" class="recond" @click="checkRecond(item.id)">
+              <div class="recond_img">
+                <img :src="item.pic" alt="">
+              </div>
+              <div>{{item.name}}</div>
+            </div>
+          </div>
+          </div>
+          <div class="box">
+            <div class="tit">
+              <img src="../assets/image/t1.png" alt="">
+            </div>
+            <div>
+                <shopList :list="list"></shopList>
+            </div>
+          </div>
+        </mt-loadmore>
       </div>
     </div>
 </template>
@@ -44,54 +52,121 @@
 <script>
     import banner from "../components/banner"
     import shopList from "../components/shopList"
+    import { Indicator  } from 'mint-ui';
     export default {
       name: "shop",
       components:{
         banner,
-        shopList
+        shopList,
+        Indicator
       },
       data(){
         return{
           index_classfy:0,
-          classfy:['热门','数码','美妆','女装','男装','洗护','童装','生活','母婴','用品','食品','家用'],
-          // more:[
-          //   {img:require('../assets/image/ban.png'),text:'热门'},
-          //   {img:require('../assets/image/ban.png'),text:'数码'},
-          //   {img:require('../assets/image/ban.png'),text:'美妆'},
-          //   {img:require('../assets/image/ban.png'),text:'女装'},
-          //   {img:require('../assets/image/ban.png'),text:'男装'},
-          //   {img:require('../assets/image/ban.png'),text:'洗护'},
-          //   {img:require('../assets/image/ban.png'),text:'童装'},
-          //   {img:require('../assets/image/ban.png'),text:'生活'},
-          //   {img:require('../assets/image/ban.png'),text:'母婴'},
-          //   {img:require('../assets/image/ban.png'),text:'用品'},
-          //   {img:require('../assets/image/ban.png'),text:'食品'},
-          //   {img:require('../assets/image/ban.png'),text:'家用'}
-          // ],
-          // moreShow:false,
-          recond:[
-            {img:require('../assets/image/ban.png'),text:'连衣裙'},
-            {img:require('../assets/image/ban.png'),text:'卫衣'},
-            {img:require('../assets/image/ban.png'),text:'外套'},
-            {img:require('../assets/image/ban.png'),text:'针织毛衣'},
-            {img:require('../assets/image/ban.png'),text:'牛仔裤'},
-            {img:require('../assets/image/ban.png'),text:'风衣'},
-            {img:require('../assets/image/ban.png'),text:'衬衣'},
-            {img:require('../assets/image/ban.png'),text:'T恤'},
-            {img:require('../assets/image/ban.png'),text:'时尚套装'},
-            {img:require('../assets/image/ban.png'),text:'更多'}
-          ]
+          classfy:[{id:'',name:'热门'}],
+          banner:[],
+          recond:[],
+          bannerShow:true,
+          type:'hot',
+          q:'',
+          cid:'',
+          page:1,
+          pagesize:10,
+          list:[],
+          state:true,
+          topStatus: '',
+          allLoaded:false,
+          hide:false
         }
       },
+      mounted(){
+        this.getClassfy()
+        this.getRecond()
+        window.scrollTo(0,0)
+      },
       methods:{
-        checkClassfy(index){
+        getClassfy(){
+          this.$('shop/home', {}, res => {
+            console.log(res)
+            if (res.code === 200) {
+              this.banner = res.data.banner
+              this.classfy.push.apply(this.classfy,res.data.class_list)
+            }
+          })
+        },
+        getRecond(){
+          Indicator.open('加载中...');
+          this.$('shop/itemclass', {cid:this.cid}, res => {
+            console.log(res)
+            if (res.code === 200) {
+              this.recond = res.data
+              this.getList()
+            }
+          })
+        },
+        getList(){
+          this.$('shop/list', {type:this.type,q:this.q,cid:this.cid,page:this.page,pagesize: this.pagesize}, res => {
+            console.log(res)
+            if (res.code === 200) {
+              if (res.data.length<this.pagesize){
+                this.state = false
+                this.allLoaded = true
+              }
+              if (this.page ==1){
+                this.list = res.data
+              } else {
+                this.list.push.apply(this.list,res.data)
+                this.$refs.loadmore.onBottomLoaded();
+              }
+              Indicator.close();
+            }
+          })
+        },
+        checkClassfy(index,id){
+          this.cid = id
+          this.page = 1
+          this.allLoaded = false
+          if (index==0){
+            this.bannerShow = true
+            this.type = 'hot'
+          } else {
+            this.bannerShow = false
+            this.type = 'def'
+          }
           this.index_classfy = index
           this.$refs.classfyScroll.scrollLeft = 67*index - 135
-          this.moreShow = false
+          this.getRecond()
+        },
+        checkRecond(id){
+          this.page = 1
+          Indicator.open('加载中...');
+          this.cid = id
+          this.allLoaded = false
+          this.getList()
         },
         openMore(){
           this.$router.push('/shop/classfy')
-          // this.moreShow = !this.moreShow
+        },
+        handleTopChange(status) {
+          this.topStatus = status;
+        },
+        loadTop(){
+          this.page = 1
+          this.$('shop/list', {type:this.type,q:this.q,cid:this.cid,page:this.page,pagesize: this.pagesize}, res => {
+            if (res.code === 200) {
+              this.list = res.data
+              this.$refs.loadmore.onTopLoaded();
+            }
+          })
+        },
+        loadBottom() {
+          if (this.state) {
+            this.page++
+            this.getList()
+          }
+        },
+        openSearch(){
+          this.$router.push('/shop/item_list')
         }
       }
     }
@@ -136,7 +211,7 @@
     width: 100%;
     height: 40px;
     overflow-x: auto;
-    padding-right: 45px;
+    /*padding-right: 45px;*/
     white-space: nowrap;
     text-align: center;
     line-height: 37px;
@@ -212,7 +287,13 @@
   .tit img{
     width: 110px;
   }
-  .box{
-    padding-bottom: 70px;
+  /*img{*/
+  /*  width: 100%!important;*/
+  /*  height: inherit;*/
+  /*  !*padding-bottom: 70px;*!*/
+  /*}*/
+  .bbbx{
+    height: calc(100vh - 148px);
+    overflow-y: scroll;
   }
 </style>

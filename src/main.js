@@ -3,6 +3,14 @@
 import Vue from 'vue'
 import App from './App'
 import router from './router'
+import store from './store'
+
+// import Vconsole from 'vconsole';
+// const vConsole =new Vconsole();
+// Vue.use(vConsole);
+
+import myCharts from './assets/script/myCharts.js'
+Vue.use(myCharts)
 
 import 'lib-flexible/flexible.js'
 
@@ -15,6 +23,7 @@ Vue.config.productionTip = false
 new Vue({
   el: '#app',
   router,
+  store,
   components: { App },
   template: '<App/>'
 })

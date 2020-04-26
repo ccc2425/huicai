@@ -4,14 +4,25 @@
 
 <script>
     export default {
-        name: "login",
+      name: "login",
+      created(){
+      },
       mounted(){
-          this.login()
+        if (localStorage.getItem('token')) {
+          this.$router.push('/index')
+        }else {
+          this.$('user/wxauthurl',{},res=>{
+            console.log(res)
+            // alert(res.code+','+res.data)
+            if (res.code === 200){
+              window.location.href = res.data
+            } else {
+              alert(res.msg)
+            }
+          })
+        }
       },
       methods:{
-          login(){
-            window.location.href = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx7bd41abdbcec83f9&redirect_uri=http%3A%2F%2Fgzhtest.xianlubang.com%2Fwxlogin&response_type=code&scope=snsapi_userinfo&state=123#wechat_redirect"
-          }
       }
     }
 </script>

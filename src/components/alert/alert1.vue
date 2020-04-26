@@ -14,13 +14,13 @@
 <script>
     export default {
         name: "alert1",
-      props:['text'],
+      props:['text','ad_id'],
       methods:{
         cansel(){
           this.$emit('getAlert1',false)
         },
         sure(){
-          this.$emit('getAlert1',false)
+          this.$emit('getAlert1',true)
         },
       }
     }

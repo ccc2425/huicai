@@ -21,27 +21,29 @@
       </div>
     </div>
     <div class="btn_box">
-      <div class="btn">提交建议</div>
+      <div class="btn" @click="upData">提交建议</div>
     </div>
   </div>
 </template>
 
 <script>
     import headerBack from "../../components/headerBack"
+    import { Toast  } from 'mint-ui';
     export default {
       name: "proposal",
       components:{
         headerBack,
+        Toast
       },
       data(){
         return{
           title:'发布建议',
           icon:'\ue685 请编辑建议内容',
           text:'',
-          imgList:[
-            // {img:require('../../assets/image/ban.png')},{img:require('../../assets/image/ban.png')}
-          ],
-          upShow:true
+          imgList:[],
+          upShow:true,
+          id:'',
+          imgs:'',
         }
       },
       methods:{
@@ -51,18 +53,57 @@
           var reader = new FileReader();
           reader.readAsDataURL(imgFile)
           reader.onload = function (e) {
-            that.imgList.push(e.target.result)
-            // this.imgList.push.apply(this.imgList,e.target.result)
-            if (that.imgList.length>=3){
-              that.upShow = false
-            } else {
-              that.upShow = true
-            }
+            that.$('common/upbase64img', {img:e.target.result}, res => {
+              console.log(res)
+              if (res.code === 200) {
+                that.imgList.push(res.data.url)
+                Toast({
+                  message: res.msg,
+                  position: 'middle',
+                  duration: 1000
+                });
+                if (that.imgList.length>=3){
+                  that.upShow = false
+                } else {
+                  that.upShow = true
+                }
+              }
+            })
           }
         },
         deleteImg(i){
           this.imgList.splice(i,1)
           this.upShow = true
+        },
+        upData(){
+          console.log(this.imgList)
+          for (let i = 0; i < this.imgList.length; i++) {
+            if (i==0){
+              this.imgs +=this.imgList[i]
+            }else {
+              this.imgs += ',' + this.imgList[i]
+            }
+          }
+          console.log(this.imgs)
+          this.$('user/feedback', {content:this.text,imgs:this.imgs}, res => {
+            console.log(res)
+            if (res.code === 200) {
+              Toast({
+                message: res.msg,
+                position: 'middle',
+                duration: 1000
+              });
+              setTimeout(()=>{
+                this.$router.go(-1)
+              },1000)
+            }else {
+              Toast({
+                message: res.msg,
+                position: 'middle',
+                duration: 1000
+              });
+            }
+          })
         }
       }
     }

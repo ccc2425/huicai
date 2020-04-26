@@ -2,17 +2,18 @@
   <div>
     <headerBack :title="title"></headerBack>
     <div class="tip">
-      <i class="iconfont">&#xe60c;</i> 当前积分余额：2000
+      <i class="iconfont">&#xe60c;</i> 当前HC余额：{{score}}
     </div>
     <div class="box">
       <div class="title">
         添加广告图
       </div>
       <div class="img_box">
-        <div v-for="(item,i) in imgList" class="img" v-if="upShow">
+        <div class="img" v-if="upShow">
+<!--          <div v-for="(item,i) in imgList" class="img" v-if="upShow">-->
           <div class="pr">
             <i class="iconfont icon" @click="deleteImg(i)">&#xe73d;</i>
-            <img :src="item" alt="">
+            <img :src="datas.imgList" alt="">
           </div>
         </div>
       </div>
@@ -28,13 +29,13 @@
         添加广告标题
       </div>
       <div class="list mb30">
-        <input type="text" class="iconfont iptcob ipt" maxlength="12" onchange="this.value=this.value.substring(0, 12)" onkeydown="this.value=this.value.substring(0, 12)" onkeyup="this.value=this.value.substring(0, 12)" :placeholder="icon1">
+        <input type="text" v-model="datas.tit" class="iconfont iptcob ipt" maxlength="12" onchange="this.value=this.value.substring(0, 12)" onkeydown="this.value=this.value.substring(0, 12)" onkeyup="this.value=this.value.substring(0, 12)" :placeholder="icon1">
       </div>
       <div class="title">
         添加广告内容
       </div>
       <div class="list mb30">
-        <textarea type="text" class="iconfont iptcob ipt" maxlength="2000" onchange="this.value=this.value.substring(0, 2000)" onkeydown="this.value=this.value.substring(0, 2000)" onkeyup="this.value=this.value.substring(0, 2000)" :placeholder="icon2"></textarea>
+        <textarea type="text" v-model="datas.context" class="iconfont iptcob ipt" maxlength="2000" onchange="this.value=this.value.substring(0, 2000)" onkeydown="this.value=this.value.substring(0, 2000)" onkeyup="this.value=this.value.substring(0, 2000)" :placeholder="icon2"></textarea>
       </div>
       <div class="lists">
         <div class="item flex_bettwen">
@@ -48,7 +49,7 @@
           <div>广告消耗积分</div>
           <div>
             <i @click="less" class="iconfont icon_less coccc">&#xe620;</i>
-            <input class="num" type="number" v-model="num">
+            <input class="num" type="number" v-model="datas.num">
             <i @click="add" class="iconfont icon_add font_color">&#xe621;</i>
           </div>
         </div>
@@ -57,36 +58,40 @@
           <p><span class="co666">置顶广告</span>默认消耗<span>1000积分</span></p>
         </div>
       </div>
-      <div class="btn">发布</div>
+      <div class="btn" @click="upData">发布</div>
     </div>
     <div class="foot" v-if="footShow">
       <div class="bg" @click="close"></div>
       <div class="foot_box">
         <div class="foot_tit">广告位选择</div>
-        <div class="foot_list pr" @click.stop="choseThis(1,'普通广告')" :class="{chose:choseShow==1}">普通广告<i class="iconfont foot_icon" v-if="choseShow==1">&#xe610;</i></div>
-        <div class="foot_list pr" @click.stop="choseThis(2,'置顶广告')" :class="{chose:choseShow==2}">置顶广告<i class="iconfont foot_icon" v-if="choseShow==2">&#xe610;</i></div>
+        <div class="foot_list pr" @click.stop="choseThis(1,'普通广告','normal')" :class="{chose:choseShow==1}">普通广告<i class="iconfont foot_icon" v-if="choseShow==1">&#xe610;</i></div>
+        <div class="foot_list pr" @click.stop="choseThis(2,'置顶广告','top')" :class="{chose:choseShow==2}">置顶广告<i class="iconfont foot_icon" v-if="choseShow==2">&#xe610;</i></div>
       </div>
     </div>
-    <tishi :tishi="tishi" tishiShow="tishiShow"></tishi>
+    <tishi :tishi="tishi" :tishiShow="tishiShow"></tishi>
+    <alert5 v-if="alertShow" @getAlert="fromAlert" :datas="datas"></alert5>
   </div>
 </template>
 
 <script>
     import headerBack from "../../components/headerBack"
     import tishi from "../../components/tishi"
+    import alert5 from "../../components/alert/alert5"
+    import { Toast,MessageBox } from 'mint-ui';
     export default {
       name: "createad",
       components:{
+        tishi,
         headerBack,
-        tishi
+        alert5,
+        Toast,
+        MessageBox
       },
       data() {
         return {
-          title: '创建广告',
+          title: '',
           icon1: '\ue685 标题不超过12个字符',
           icon2: '\ue685 内容不超过2000个字符',
-          num:10,
-          imgList:[],
           upShow:false,
           tishi:'',
           tishiShow:false,
@@ -94,58 +99,141 @@
           ad1:'普通广告',
           ad2:'置顶广告',
           footShow:false,
+          score:localStorage.getItem('score'),
+          alertShow:false,
           choseIpt:'',
+          datas:{
+            ad_id:'',
+            tit:'',
+            context:'',
+            trade_pwd:'',
+            choseIpts:'',
+            num:0,
+            imgList:'',
+          },
+          imgUrl:'',
+        }
+      },
+      mounted(){
+        window.scrollTo(0,0)
+        if (this.$route.query.ad_id){
+          this.title = '编辑广告'
+          let ad_detail = JSON.parse(localStorage.getItem('ad_detail'))
+          this.datas.ad_id = ad_detail.id
+          this.datas.tit = ad_detail.title
+          this.datas.context = ad_detail.content
+          this.datas.imgList = ad_detail.master_img
+          this.upShow = true
+        } else {
+          this.title = '创建广告'
+          localStorage.setItem('go',1)
         }
       },
       methods:{
         less(){
-          this.num --
-          if(this.num<=0){
-            this.num = 0
+          this.datas.num -=10
+          if(this.datas.num<=0){
+            this.datas.num = 0
             return false
           }
         },
         add(){
-          this.num ++
+          this.datas.num +=10
         },
         getImg(val){
           let that = this;
+          console.log(val)
           var imgFile = val.target.files[0];
-          console.log(imgFile)
           var imgSize = imgFile.size;
-          console.log(1024*1024*2)
-          console.log(imgSize)
           if (imgSize>1024*1024*2){
-            this.tishi = '图片大小不能超过2M'
-            this.tishiShow = true
-            setTimeout(()=>{
-              this.tishiShow = false
-            },1000)
+            Toast({
+              message: '图片大小不能超过2M',
+              position: 'middle',
+              duration: 500
+            });
             return false
           }
           var reader = new FileReader();
           reader.readAsDataURL(imgFile)
           reader.onload = function (e) {
-            that.imgList.push(e.target.result)
-            // this.imgList.push.apply(this.imgList,e.target.result)
-            if (that.imgList.length>=1){
-              that.upShow = true
-            } else {
-              that.upShow = false
-            }
+            that.imgUrl = e.target.result
+            that.imgUrl = that.imgUrl.replace(/:;/, ":image/jpeg;")
+            that.$('common/upbase64img', {img:that.imgUrl}, res => {
+              console.log(res)
+              if (res.code === 200) {
+                that.datas.imgList = res.data.url
+                Toast({
+                  message: res.msg,
+                  position: 'middle',
+                  duration: 500
+                });
+                if (that.datas.imgList){
+                  that.upShow = true
+                } else {
+                  that.upShow = false
+                }
+              }else {
+                Toast({
+                  message: res.msg,
+                  position: 'middle',
+                  duration: 500
+                });
+              }
+            })
           }
         },
         deleteImg(i){
-          this.imgList.splice(i,1)
+          this.datas.imgList = '';
           this.upShow = false
         },
-        choseThis(index,text){
+        choseThis(index,text,type){
           this.choseShow = index
           this.choseIpt = text;
           this.footShow = false;
+          this.datas.choseIpts = type
+          if (index == 1){
+            this.datas.num = 10
+          } else {
+            this.datas.num = 1000
+          }
         },
         close(){
           this.footShow = !this.footShow
+        },
+        upData(){
+          if (!this.datas.imgList){
+            this.tishi = '请先上传图片'
+            this.tishis()
+          }else if (!this.datas.tit){
+            this.tishi = '请输入广告标题'
+            this.tishis()
+          }else if (!this.datas.context){
+            this.tishi = '请输入广告内容'
+            this.tishis()
+          }else if (!this.datas.choseIpts){
+            this.tishi = '请选择广告位置'
+            this.tishis()
+          }else {
+            let that = this
+            if (localStorage.getItem('is_paypwd') == 0){
+              MessageBox.confirm('请先设置交易密码').then(action => {
+                that.$router.push('/mine/set_password')
+              });
+            } else {
+              this.alertShow = true
+            }
+          }
+        },
+        fromAlert(data){
+          this.alertShow = false
+          console.log(data)
+        },
+        tishis(){
+          this.tishiShow = true
+          setTimeout(()=>{
+            this.tishiShow = false
+          },1000)
+          return false
         }
       }
     }
@@ -230,8 +318,8 @@
     text-align: right;
   }
   .num{
-    width: 30px;
-    margin: 0px 10px;
+    width: 40px;
+    margin: 0px 5px;
     text-align: center;
     color: #FA7624;
   }

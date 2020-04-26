@@ -19,14 +19,15 @@ export default {
   height: 100%;
   font-size: 15px;
 }
+
 @font-face {
   font-family: 'iconfont';  /* project id 1675510 */
-  src: url('http://at.alicdn.com/t/font_1675510_iimiwqpspa.eot');
-  src: url('http://at.alicdn.com/t/font_1675510_iimiwqpspa.eot?#iefix') format('embedded-opentype'),
-  url('http://at.alicdn.com/t/font_1675510_iimiwqpspa.woff2') format('woff2'),
-  url('http://at.alicdn.com/t/font_1675510_iimiwqpspa.woff') format('woff'),
-  url('http://at.alicdn.com/t/font_1675510_iimiwqpspa.ttf') format('truetype'),
-  url('http://at.alicdn.com/t/font_1675510_iimiwqpspa.svg#iconfont') format('svg');
+  src: url('http://at.alicdn.com/t/font_1675510_wsf1n08a12o.eot');
+  src: url('http://at.alicdn.com/t/font_1675510_wsf1n08a12o.eot?#iefix') format('embedded-opentype'),
+  url('http://at.alicdn.com/t/font_1675510_wsf1n08a12o.woff2') format('woff2'),
+  url('http://at.alicdn.com/t/font_1675510_wsf1n08a12o.woff') format('woff'),
+  url('http://at.alicdn.com/t/font_1675510_wsf1n08a12o.ttf') format('truetype'),
+  url('http://at.alicdn.com/t/font_1675510_wsf1n08a12o.svg#iconfont') format('svg');
 }
 .iconfont {
   font-family: 'iconfont' !important;
@@ -73,7 +74,7 @@ body{
   justify-content: space-around;
 }
   .font_color{
-    color: #ED7C2B;
+    color: #ED7C2B!important;
   }
   .co666{
     color: #666666!important;
@@ -83,6 +84,9 @@ body{
 }
   .coccc{
     color: #cccccc;
+  }
+  .cob3{
+    color: #B3B3B3;
   }
 .classfys{
   height: 40px;
@@ -106,6 +110,15 @@ body{
   background: #EF651B;
   border-radius: 2px;
 }
+.btnbg{
+  background: linear-gradient(to right,#F7AB31,#FA7624);
+}
+.bgccc{
+  background: #CCCCCC;
+}
+.bgcf{
+  background: #FFFFFF;
+}
 .iptcob::-webkit-input-placeholder{color:#B3B3B3;}
 .iptcob::-moz-placeholder{/* Mozilla Firefox 19+ */color:#B3B3B3;}
 .iptcob:-moz-placeholder{/* Mozilla Firefox 4 to 18 */color:#B3B3B3;}
@@ -123,6 +136,8 @@ body{
   .lh30{
     line-height: 30px;
   }
+  .mb10{margin-bottom: 10px}
+  .mb20{margin-bottom: 20px}
 .mb15{
   margin-bottom: 15px;
 }
@@ -130,10 +145,21 @@ body{
     margin-bottom: 30px;
   }
   .padb50{
-    padding-bottom: 50px;
+    padding-bottom: 50px!important;
   }
+.mb60{
+  margin-bottom: 60px!important;
+}
+.fs14{
+  font-size: 14px;
+}
   .fs18{
     font-size: 18px;
+  }
+  .texthidden{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 .texthiddens{text-overflow: -o-ellipsis-lastline; overflow: hidden;text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical;}
 

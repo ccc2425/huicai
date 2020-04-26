@@ -6,15 +6,17 @@
           <p>我的广告</p>
           <i @click="createad" class="iconfont icon_r">&#xe676;</i>
         </div>
-        <tip></tip>
+        <tip :num="num"></tip>
         <div class="classfy">
-          <div :class="{active:index===0}" class="pr" @click="chosethis(0)">投放中</div>
-          <div :class="{active:index===1}" class="pr" @click="chosethis(1)">已过期</div>
+          <div :class="{active:index===0}" class="pr" @click="chosethis(0,'put')">投放中</div>
+          <div :class="{active:index===1}" class="pr" @click="chosethis(1,'end')">已过期</div>
         </div>
       </div>
       <div class="zhanwei"></div>
-      <div>
-        <adlist :list="list" :state="state"></adlist>
+      <div style="overflow-y: scroll">
+        <mt-loadmore :top-method="loadTop" @top-status-change="handleTopChange" :autoFill="false" :bottom-method="loadBottom" :bottom-all-loaded="allLoaded"  ref="loadmore">
+          <adlist :list="list" :state="state"></adlist>
+        </mt-loadmore>
       </div>
     </div>
 </template>
@@ -22,40 +24,111 @@
 <script>
     import adlist from "../../components/adlist"
     import tip from "../../components/tip"
+    import { MessageBox } from 'mint-ui'
     export default {
       name: "myad",
       components:{
         adlist,
-        tip
+        tip,
+        MessageBox
       },
       data(){
         return{
           index:0,
           state:true,
-          list:[
-            {img:require('../../assets/image/ban.png'),tit:'雨师餐饮疫期不打烊',text:'雨师餐饮疫期不打烊，店内订单全部采用全封闭式包装保证食用卫生安全，全场8折！',date:'02月27日-03月26日',num:'3952'},
-            {img:require('../../assets/image/ban.png'),tit:'中考冲刺数理化课程开售',text:'开设初中生语,数,英,理化全科目课程,线上老师实时教学,针对性辅导,线下班主任+学科+心理素质+自习+规划师...开设初中生语,数,英,理化全科目课程,线上老师实时教学,针对性辅导,线下班主任+学科+心理素质+自习+规划师...',date:'02月27日-03月26日',num:"3952"},
-            {img:require('../../assets/image/ban.png'),tit:'春款新品特别推出',text:'春款新品休闲运动连帽卫衣，百搭单品，柔软亲肤，穿上它就是街上最靓的仔。上新价仅需99元！',date:'02月27日-03月26日',num:"3952"},
-            {img:require('../../assets/image/ban.png'),tit:'雨师餐饮疫期不打烊雨师餐饮疫期不打烊',text:'雨师餐饮疫期不打烊，店内订单全部采用全封闭式包装保证食用卫生安全',date:'02月27日-03月26日',num:"3952"},
-            {img:require('../../assets/image/ban.png'),tit:'雨师餐饮疫期不打烊雨师餐饮疫期不打烊',text:'雨师餐饮疫期不打烊',date:'02月27日-03月26日',num:"3952"},
-          ],
+          list:[],
+          type:'put',
+          page:1,
+          pagesize: 10,
+          topStatus: '',
+          pageA:1,
+          pageB:1,
+          stateA:true,
+          stateB:true,
+          // loadA:false,
+          // loadB:false,
+          allLoaded:false,
+          num:'',
         }
+      },
+      mounted(){
+        this.getmain()
       },
       methods:{
         back(){
           this.$router.go(-1)
         },
-        chosethis(index){
+        chosethis(index,type){
           this.index = index
+          this.type = type
+          this.allLoaded = false
           window.scrollTo(0, 0)
           if (index === 0){
             this.state = true
+            this.page = this.pageA
           } else {
             this.state = false
+            this.page = this.pageB
           }
+          this.getmain()
         },
         createad(){
-          this.$router.push('/business/createad')
+          // if (localStorage.getItem('is_real')==0){
+          //     MessageBox.confirm('请完成实名认证').then(action => {
+          //       that.$router.push('/mine/realname')
+          //     });
+          // }else {
+            this.$router.push('/business/createad')
+          // }
+        },
+        getmain(){
+          this.$('advert/mylist', {type:this.type,page:this.page,pagesize:this.pagesize}, res => {
+            console.log(res)
+            if (res.code === 200) {
+              if (res.data.list.length<this.pagesize){
+                this.allLoaded = true
+                if (this.index == 0){
+                  this.stateA = false
+                }else {
+                  this.stateB =  false
+                }
+              }
+              this.num = res.data.put_advert_num
+              if (this.page ==1){
+                this.list = res.data.list
+              } else {
+                this.list.push.apply(this.list,res.data.list)
+                this.$refs.loadmore.onBottomLoaded();
+              }
+            }
+          })
+        },
+        handleTopChange(status) {
+          this.topStatus = status;
+        },
+        loadTop(){
+          this.page = 1
+          this.$('advert/mylist', {type:this.type,page:this.page,pagesize:this.pagesize}, res => {
+            if (res.code === 200) {
+              this.list = res.data.list
+              this.num = res.data.put_advert_num
+              this.$refs.loadmore.onTopLoaded();
+            }
+          })
+        },
+        loadBottom() {
+            if (this.index == 0) {
+              if (this.stateA) {
+                this.pageB++
+                this.page = this.pageB
+              }
+            } else {
+              if (this.stateB) {
+                this.pageB++
+                this.page = this.pageB
+              }
+            }
+            this.getmain()
         }
       }
     }

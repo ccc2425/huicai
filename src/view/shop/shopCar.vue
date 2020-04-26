@@ -13,12 +13,12 @@
             <img @click="checkThis(i,item.checkd)" v-if="item.checkd" class="check_img" src="../../assets/image/c1.png" alt="">
             <div class="clearfix">
               <div class="fl img_box">
-                <img :src="item.img" alt="">
+                <img :src="item.master_image" alt="">
               </div>
               <div class="fl item">
-                <div class="tit tits texthiddens">{{item.tit}}</div>
+                <div class="tit tits texthiddens">{{item.title}}</div>
                 <div class="sizes flex_bettwen">
-                  <div class="price"><span class="fs15">{{item.price}}</span>.00HC</div>
+                  <div class="price"><span class="fs15">{{item.price}}</span>HC</div>
                   <div class="num_box">
                     <span @click="less(i)">-</span><input type="number" readonly="true" v-model="item.num"><span @click="add(i)">+</span>
                   </div>
@@ -37,93 +37,57 @@
             <div>合计：<span>￥{{money}}</span></div>
             <div class="co999">不含运费</div>
           </div>
-          <div class="buy">立即结算</div>
+          <div class="buy" @click="buy">立即结算</div>
         </div>
       </div>
       <div v-if="!car">
-        <div class="box">
-          <div class="list">
-            <div class="list_tit flex_bettwen">
-              <div>订单编号 23658954622</div>
-              <div class="co999">2020-03-04  11:25</div>
-            </div>
-            <div>
-              <div class="clearfix mb15">
-                <div class="fl img_box">
-                  <img src="../../assets/image/item1.png" alt="">
-                </div>
-                <div class="fl item">
-                  <div class="tit texthiddens">春款新品休闲连帽卫衣百搭单品春款新品休闲连帽卫衣百搭单品春款新品休闲连帽卫衣百搭单品</div>
-                  <div class="sizes flex_bettwen">
-                    <span class="co999">标准白 M码</span>
-                    <span><span class="fs15">99</span>.00HC</span>
+        <mt-loadmore :top-method="loadTop" @top-status-change="handleTopChange" :autoFill="false" :bottom-method="loadBottom" :bottom-all-loaded="allLoaded" ref="loadmore">
+          <div class="box heights" ref="box">
+            <div class="list list2" v-for="item in orderList" @click="openOrderDetail(item.order_id)">
+              <div class="list_tit flex_bettwen">
+                <div>订单编号 {{item.order_id}}</div>
+                <div class="co999">{{item.createtime}}</div>
+              </div>
+              <div>
+                <div class="clearfix mb15" v-for="items in item.items">
+                  <div class="fl img_box">
+                    <img :src="items.master_image" alt="">
                   </div>
-                  <div>x1</div>
+                  <div class="fl item">
+                    <div class="tit texthiddens">{{items.title}}</div>
+                    <div class="sizes flex_bettwen">
+<!--                      <span class="co999">标准白 M码</span>-->
+                      <span><span class="fs15">{{items.price}}</span>HC</span>
+                      <span>x{{items.num}}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div class="freight co999">
-              运费：<span>10.00HC</span>
-            </div>
-            <div class="all">
-              <span class="mr5">共1件</span> 合计：<span class="fs15">99</span>.00HC
+              <div class="freight co999">
+                运费：<span>{{item.freight_price}}HC</span>
+              </div>
+              <div class="all">
+                <span class="mr5">共1件</span> 合计：<span class="fs15">{{item.score}}</span>HC
+              </div>
             </div>
           </div>
-          <div class="list">
-            <div class="list_tit flex_bettwen">
-              <div>订单编号 23658954622</div>
-              <div class="co999">2020-03-04  11:25</div>
-            </div>
-            <div>
-              <div class="clearfix mb15">
-                <div class="fl img_box">
-                  <img src="../../assets/image/item1.png" alt="">
-                </div>
-                <div class="fl item">
-                  <div class="tit texthiddens">春款新品休闲连帽卫衣百搭单品春款新品休闲连帽卫衣百搭单品春款新品休闲连帽卫衣百搭单品</div>
-                  <div class="sizes flex_bettwen">
-                    <span class="co999">标准白 M码</span>
-                    <span><span class="fs15">99</span>.00HC</span>
-                  </div>
-                  <div>x1</div>
-                </div>
-              </div>
-              <div class="clearfix mb15">
-                <div class="fl img_box">
-                  <img src="../../assets/image/item1.png" alt="">
-                </div>
-                <div class="fl item">
-                  <div class="tit texthiddens">春款新品休闲连帽卫衣百搭单品春款新品休闲连帽卫衣百搭单品春款新品休闲连帽卫衣百搭单品</div>
-                  <div class="sizes flex_bettwen">
-                    <span class="co999">标准白 M码</span>
-                    <span><span class="fs15">99</span>.00HC</span>
-                  </div>
-                  <div>x1</div>
-                </div>
-              </div>
-            </div>
-            <div class="freight co999">
-              运费：<span>10.00HC</span>
-            </div>
-            <div class="all">
-              <span class="mr5">共1件</span> 合计：<span class="fs15">99</span>.00HC
-            </div>
-          </div>
-        </div>
-        <div class="btn_box">
-          <div class="btn"><img src="../../assets/image/i13.png" alt="">订单客服</div>
-        </div>
+        </mt-loadmore>
+<!--        <div class="btn_box">-->
+<!--          <div class="btn"><img src="../../assets/image/i13.png" alt="">订单客服</div>-->
+<!--        </div>-->
       </div>
     </div>
 </template>
 
 <script>
     import headerBack from "../../components/headerBack"
-
+    import { Indicator,Toast } from 'mint-ui';
     export default {
       name: "shopCar",
       components:{
-        headerBack
+        headerBack,
+        Indicator,
+        Toast
       },
       data(){
           return{
@@ -131,17 +95,62 @@
             index:0,
             car:true,
             num:1,
-            list:[
-              {img:require("../../assets/image/item1.png"),tit:"春款新品休闲连帽卫衣百搭单品春款新",price:'99',num:1,checkd:false},
-              {img:require("../../assets/image/item1.png"),tit:"春款新品休闲连帽卫衣百搭单品春款新",price:'99',num:1,checkd:false},
-              {img:require("../../assets/image/item1.png"),tit:"春款新品休闲连帽卫衣百搭单品春款新",price:'99',num:1,checkd:false},
-            ],
+            list:[],
             choseAll:false,
             all:'全选',
-            money:0
+            money:0,
+            edata:'',
+            edatas:[],
+            ids:'',
+            topStatus:'',
+            orderList:[],
+            allLoaded:false,
+            page:1,
+            pagesize:10,
+            state:true
           }
       },
+      mounted(){
+        Indicator.open('加载中...');
+        this.getmain()
+        this.getList()
+        if (this.$route.query.car == 1){
+          this.car = true
+          this.index = 0
+        } else {
+          this.index = 1
+          this.car = false
+        }
+      },
       methods:{
+        getmain(){
+          this.$('shop/cartlist',{},res=>{
+            console.log(res)
+            if (res.code === 200){
+              this.list = res.data
+              Indicator.close();
+            }
+          })
+        },
+        getList(){
+          this.$('user/order', {page:this.page,pagesize: this.pagesize}, res => {
+            console.log(res)
+            if (res.code === 200) {
+              Indicator.close();
+              if (res.data.length<this.pagesize){
+                this.state = false
+                this.allLoaded = true
+              }
+              if (this.page ==1){
+                this.orderList = res.data
+              } else {
+                this.orderList.push.apply(this.orderList,res.data)
+                this.$refs.loadmore.onBottomLoaded();
+              }
+              Indicator.close();
+            }
+          })
+        },
         chose(index){
           this.index = index
           if (index == 0 ) {
@@ -207,6 +216,65 @@
         },
         computeless(i){
           this.money =this.money - parseFloat(this.list[i].price)*this.list[i].num
+        },
+        buy(){
+          this.edata = '';
+          this.edatas= [];
+          this.ids = ''
+          for (let i = 0; i < this.list.length; i++) {
+            if (this.list[i].checkd) {
+              this.edatas.push(this.list[i].id +'^'+this.list[i].num)
+              this.ids += this.list[i].id + ','
+            }else {
+              if (this.edatas.indexOf(this.list[i].id +'^'+this.list[i].num)>-1){
+                this.edatas.splice(this.edatas.indexOf(this.list[i].id +'^'+this.list[i].num),1)
+              }
+            }
+          }
+          for (let j = 0; j < this.edatas.length; j++) {
+            if (j===0){
+              this.edata += this.edatas[j]
+            } else {
+              this.edata += '|'+this.edatas[j]
+            }
+          }
+          this.ids = this.ids.substr(0, this.ids.length - 1);
+          this.$('shop/editcart',{edata	:this.edata},res=>{
+            console.log(res)
+            if (res.code === 200){
+              this.$router.push('/shop/orderSure?ids='+this.ids+'&cai=1')
+            }else {
+              Toast({
+                message: res.msg,
+                position: 'middle',
+                duration: 500
+              })
+            }
+          })
+        },
+
+        handleTopChange(status) {
+          this.topStatus = status;
+        },
+        loadTop(){
+          // if (this.$refs.box.scrollTop == 0){
+            this.page = 1
+            this.$('user/order', {page:this.page,pagesize: this.pagesize}, res => {
+              if (res.code === 200) {
+                this.list = res.data
+                this.$refs.loadmore.onTopLoaded();
+              }
+            })
+          // }
+        },
+        loadBottom() {
+          if (this.state) {
+            this.page++
+            this.getList()
+          }
+        },
+        openOrderDetail(id){
+          this.$router.push('/shop/orderDetail?id='+id)
         }
       }
     }
@@ -250,6 +318,9 @@
     border-radius: 6px;
     margin-bottom: 10px;
   }
+  .list2{
+    padding: 10px;
+  }
   .check_img{
     position: absolute;
     top: 45%;
@@ -269,6 +340,9 @@
   .item{
     width: 195px;
     line-height: 20px;
+  }
+  .list2 .item{
+    width: 223px;
   }
   .tit{
     font-size: 15px;
@@ -360,5 +434,10 @@
     text-align: center;
     color: #FFFFFF;
     background: linear-gradient(to right,#F7B132,#FA7624);
+  }
+  .heights{
+    height: calc(100vh - 90px);
+    overflow-y: scroll;
+    padding: 10px;
   }
 </style>

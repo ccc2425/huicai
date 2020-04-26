@@ -1,7 +1,7 @@
 <template>
   <div class="banner pr">
     <mt-swipe :auto="4000" @change="handleChange">
-      <mt-swipe-item v-for="(item,index) in banner" :key="index"><img :src="item.img" alt=""></mt-swipe-item>
+      <mt-swipe-item v-for="(item,index) in banner" :key="index"><img :src="item" alt=""></mt-swipe-item>
     </mt-swipe>
     <span class="suoyin">{{banndeIndex}}/{{banner.length}}</span>
   </div>
@@ -10,13 +10,9 @@
 <script>
     export default {
       name: "itemBanner",
+      props:['banner'],
       data(){
         return{
-          banner:[
-            {img:require('../assets/image/ban1.png')},
-            {img:require('../assets/image/ban1.png')},
-            {img:require('../assets/image/ban1.png')}
-          ],
           banndeIndex:1
         }
       },

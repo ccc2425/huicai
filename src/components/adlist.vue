@@ -1,16 +1,16 @@
 <template>
     <div class="box">
-      <div v-for="item in list" class="list clearfix" @click="openDetail">
+      <div v-for="item in list" class="list clearfix" @click="openDetail(item.id)">
         <div class="list_img fl pr">
-          <img :src="item.img" alt="">
+          <img :src="item.master_img" alt="">
           <div v-if="!state" class="overdue">已过期</div>
         </div>
         <div class="list_item fl">
-          <div class="list_tit">{{item.tit}}</div>
-          <div class="list_text">{{item.text}}</div>
+          <div class="list_tit">{{item.title}}</div>
+          <div class="list_text">{{item.content}}</div>
           <div class="list_bottom">
-            <div>{{item.date}}</div>
-            <div><i class="iconfont">&#xe622;</i> {{item.num}}</div>
+            <div>{{item.start_time}} - {{item.end_time}}</div>
+<!--            <div><i class="iconfont">&#xe622;</i> {{item.num}}</div>-->
           </div>
         </div>
       </div>
@@ -27,8 +27,8 @@
         }
       },
       methods:{
-        openDetail(){
-          this.$router.push('/business/ad_detail')
+        openDetail(id){
+          this.$router.push('/business/ad_detail?type=mylist&id='+id)
         }
       }
     }
@@ -37,6 +37,7 @@
 <style scoped>
   .box{
     padding: 10px;
+    min-height: calc(100vh - 115px);
   }
   .list{
     padding: 10px;

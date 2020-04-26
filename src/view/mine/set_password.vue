@@ -4,6 +4,10 @@
         <headerBack :title="title"></headerBack>
       </div>
       <div class="box">
+        <div v-if="old==1" class="list">
+          <span>交易密码</span>
+          <input type="password" placeholder="请输入旧交易密码" v-model="old_passwprd">
+        </div>
         <div class="list">
           <span>设置新密码</span>
           <input type="password" placeholder="请设置交易密码" v-model="password">
@@ -33,22 +37,44 @@
           password:'',
           password1:"",
           tishi:'',
-          tishiShow:false
+          tishiShow:false,
+          old:'',
+          old_passwprd:'',
         }
+      },
+      mounted(){
+        this.old = localStorage.getItem("is_paypwd")
+
       },
       methods:{
         sure(){
-          if (!this.password){
-            this.tishi = '密码不能为空'
-          } else if (this.password!==this.password1) {
+          if (this.password!==this.password1) {
             this.tishi = '密码不一致'
+            this.tishiShow = true
+            setTimeout(()=>{
+              this.tishiShow = false
+            },1000)
           }else {
-            this.tishi = '修改成功'
+            this.$('user/settradepwd', {old_pwd:this.old_passwprd,new_pwd:this.password}, res => {
+              // console.log(res)
+              if (res.code === 200) {
+                this.tishi = '修改成功'
+                this.tishiShow = true
+                localStorage.setItem('is_paypwd',1)
+                setTimeout(()=>{
+                  this.tishiShow = false
+                  this.$router.go(-1)
+                },1000)
+              }else {
+                this.tishi = res.msg
+                this.tishiShow = true
+                setTimeout(()=>{
+                  this.tishiShow = false
+                },1000)
+              }
+            })
           }
-          this.tishiShow = true
-          setTimeout(()=>{
-            this.tishiShow = false
-          },1000)
+
         }
       }
     }
@@ -68,7 +94,7 @@
   }
   .list span{
     display: inline-block;
-    width: 75px;
-    margin-right: 20px;
+    width: 90px;
+    margin-right: 5px;
   }
 </style>

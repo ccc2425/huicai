@@ -1,30 +1,24 @@
 <template>
     <div>
       <headerBack :title="title"></headerBack>
-      <div class="box">
-        <div class="list">
-          <div class="text mb15">
-            留言：希望能有更多的不同行业的广告展示，希望能有更多的不同行业的广告展示，希望能有更多的不同行业的广告展示...
+      <div class="box" ref="box">
+        <mt-loadmore :top-method="loadTop" @top-status-change="handleTopChange" :autoFill="false" :bottom-method="loadBottom" :bottom-all-loaded="allLoaded" ref="loadmore">
+          <div ref="box1">
+            <div v-for="(item,i) in list" class="list">
+              <div class="text mb15">
+                留言：{{item.content}}
+              </div>
+              <div class="img_box mb15">
+                <img v-for="items in item.imgs" :src="items" alt="">
+              </div>
+              <div class="time mb15">{{item.createtime}}</div>
+              <div v-if="item.status == 1" class="reply">客服：{{item.reply}}</div>
+            </div>
           </div>
-          <div class="img_box mb15">
-            <img src="../../assets/image/ban.png" alt="">
-          </div>
-          <div class="time mb15">2020-03-09 16:13</div>
-          <div class="reply">客服：后续我们会增加更多的行业广告，感谢您的本次建议。</div>
-        </div>
-        <div class="list">
-          <div class="text mb15">
-            留言：希望能有更多的不同行业的广告展示，希望能有更多的不同行业的广告展示，希望能有更多的不同行业的广告展示...
-          </div>
-          <div class="img_box mb15">
-            <img src="../../assets/image/ban.png" alt="">
-          </div>
-          <div class="time mb15">2020-03-09 16:13</div>
-<!--          <div class="reply">客服：后续我们会增加更多的行业广告，感谢您的本次建议。</div>-->
-        </div>
+        </mt-loadmore>
       </div>
       <div class="btn_box">
-        <div class="btn" @click="proposal">我要建议</div>
+        <div class="btn" @click="proposal()">我要建议</div>
       </div>
     </div>
 </template>
@@ -39,11 +33,57 @@
       data(){
         return{
           title:'投诉建议',
+          list:[],
+          page:1,
+          pagesize: 10,
+          state:true,
+          topStatus: '',
+          allLoaded:false,
         }
+      },
+      mounted(){
+        // window.scrollTo(0,0)
+        // console.log(this.$refs.box1)
+        this.getmain()
       },
       methods:{
         proposal(){
           this.$router.push('/mine/proposal')
+        },
+        getmain(){
+          this.$('user/feedbacklist', {page:this.page,pagesize:this.pagesize}, res => {
+            console.log(res)
+            if (res.code === 200) {
+              if (res.data.length<this.pagesize){
+                  this.state = false
+                this.allLoaded = true
+              }
+              if (this.page ==1){
+                this.list = res.data
+              } else {
+                this.list.push.apply(this.list,res.data)
+                this.$refs.loadmore.onBottomLoaded();
+              }
+            }
+          })
+        },
+        handleTopChange(status) {
+          this.topStatus = status;
+        },
+        loadTop(){
+          this.page = 1
+          this.$('user/feedbacklist', {page:this.page,pagesize:this.pagesize}, res => {
+            if (res.code === 200) {
+              this.list = res.data
+              this.$refs.loadmore.onTopLoaded();
+            }
+          })
+        },
+        loadBottom() {
+          if (this.state) {
+            this.page++
+            this.getmain()
+          }
         }
       }
     }
@@ -51,8 +91,10 @@
 
 <style scoped>
   .box{
-    padding: 10px 10px 60px;
+    padding: 10px;
     color: #999999;
+    height: calc(100vh - 100px);
+    overflow: scroll;
   }
   .list{
     width: 100%;

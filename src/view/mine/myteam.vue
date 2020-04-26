@@ -4,38 +4,42 @@
         <div class="top">
           <headerBack :title="title"></headerBack>
           <div class="tip">
-            <i class="iconfont">&#xe608;</i> 我的推荐人：王小放(青睐的咸鱼)
+            <i class="iconfont">&#xe608;</i> 我的推荐人：{{rusername}}
           </div>
           <div class="flex_bettwen inform pr">
             <div>
-              <p>3562</p>
-              <p>积分余额</p>
+              <p>{{all_sub_num}}</p>
+              <p>团队总人数</p>
             </div>
             <div>
-              <p>4658</p>
-              <p>累计收益</p>
+              <p>{{a_sub_num}}</p>
+              <p>直推总人数</p>
             </div>
             <div class="border_right"></div>
           </div>
         </div>
         <div class="classfys flex_around">
-          <div class="pr" :class="{actives:index==0}" @click="chose(0)">团队成员</div>
-          <div class="pr" :class="{actives:index==1}" @click="chose(1)">直推成员</div>
+          <div class="pr" :class="{actives:index==0}" @click="chose(0,'all')">团队成员</div>
+          <div class="pr" :class="{actives:index==1}" @click="chose(1,'a')">直推成员</div>
         </div>
       </div>
       <div class="box">
-        <div v-for="item in list" class="list">
-          <div class="head_icon">
-            <img :src="item.img" alt="">
-          </div>
-          <div>
-            <div class="name">{{item.name}}</div>
-            <div class="form_box">
-              <div class="time">注册时间：{{item.time}}</div>
-              <div v-if="index===0" class="getname">推荐人：{{item.getname}}</div>
+        <mt-loadmore :top-method="loadTop" @top-status-change="handleTopChange" :autoFill="false" :bottom-method="loadBottom" :bottom-all-loaded="allLoaded" ref="loadmore">
+          <div class="bbox">
+            <div v-for="item in list" class="list">
+            <div class="head_icon">
+              <img :src="item.avatar" alt="">
+            </div>
+            <div>
+              <div class="name">{{item.username}}</div>
+              <div class="form_box">
+                <div class="time">注册时间：{{item.createtime}}</div>
+                <div v-if="index===0" class="getname">推荐人：{{item.rusername}}</div>
+              </div>
             </div>
           </div>
-        </div>
+          </div>
+        </mt-loadmore>
       </div>
     </div>
 </template>
@@ -51,25 +55,95 @@
         return{
           title:'我的团队',
           index:0,
-          list:[
-            {img:require('../../assets/image/ban.png'),name:'超级马里奥',time:'2020-02-28',getname:'航行中的爪鱼'},
-            {img:require('../../assets/image/ban.png'),name:'超级马里奥',time:'2020-02-28',getname:'航行中的爪鱼'},
-            {img:require('../../assets/image/ban.png'),name:'超级马里奥',time:'2020-02-28',getname:'航行中的爪鱼'},
-            {img:require('../../assets/image/ban.png'),name:'超级马里奥',time:'2020-02-28',getname:'航行中的爪鱼'},
-            {img:require('../../assets/image/ban.png'),name:'超级马里奥',time:'2020-02-28',getname:'航行中的爪鱼'},
-
-
-          ]
+          list:[],
+          sub_type:'all',
+          page:1,
+          pagesize: 10,
+          topStatus: '',
+          a_sub_num:0,
+          all_sub_num:0,
+          pageA:1,
+          pageB:1,
+          stateA:true,
+          stateB:true,
+          // loadA:false,
+          // loadB:false,
+          allLoaded:false,
+          start:false,//初始
+          rusername:localStorage.getItem('rusername'),
         }
       },
+      mounted(){
+        window.scrollTo(0, 0)
+        this.a_sub_num = this.$route.query.a_sub_num
+        this.all_sub_num = this.$route.query.all_sub_num
+        this.getmain()
+      },
       methods:{
-        chose(index){
+        getmain(){
+          this.$('user/team', {sub_type:this.sub_type,page:this.page,pagesize:this.pagesize}, res => {
+            // console.log(res)
+            if (res.code === 200) {
+              this.start = true
+              if (res.data.length<this.pagesize){
+                if (this.index == 0){
+                  this.stateA = false
+                  this.allLoaded = true
+                }else {
+                  this.stateB =  false
+                  this.allLoaded = true
+                }
+              }
+              if (this.page ==1){
+                this.list = res.data
+              } else {
+                this.list.push.apply(this.list,res.data)
+                this.$refs.loadmore.onBottomLoaded();
+              }
+            }
+          })
+        },
+        chose(index,type){
           this.index = index
-          // if (index == 0 ) {
-          //   this.list = this.list1
-          // }else {
-          //   this.list = this.list2
-          // }
+          this.sub_type = type
+          this.allLoaded = false
+          if (index == 0 ) {
+            this.page = this.pageA
+          }else {
+            this.page = this.pageB
+          }
+          this.getmain()
+        },
+        handleTopChange(status) {
+          this.topStatus = status;
+        },
+        loadTop(){
+          console.log(this.index)
+          this.page = 1
+          this.$('user/team', {sub_type:this.sub_type,page:this.page,pagesize:this.pagesize}, res => {
+            if (res.code === 200) {
+              this.list = res.data
+              this.$refs.loadmore.onTopLoaded();
+            }
+          })
+        },
+        loadBottom() {
+          if (this.start) {
+            if (this.index == 0) {
+              if (this.stateA) {
+                this.pageA++
+                this.page = this.pageA
+              }
+
+            } else {
+              if (this.stateB) {
+                this.pageB++
+                this.page = this.pageB
+              }
+            }
+            this.getmain()
+            // this.allLoaded = true;// 若数据已全部获取完毕
+          }
         }
       }
     }
@@ -81,6 +155,7 @@
     top: 0;
     left: 0;
     width: 100%;
+    z-index: 999;
   }
   .top{
     background: #FFFFFF;
@@ -120,8 +195,12 @@
     color: #FA7624;
   }
   .box{
+    overflow: scroll;
     margin-top: 10px;
     background: #FFFFFF;
+  }
+  .bbox{
+    min-height: calc(100vh - 248px);
   }
   .list{
     display: flex;
@@ -150,5 +229,8 @@
   .time{
     width: 150px;
     color: #666666;
+  }
+  .box>>>.mint-loadmore-content{
+    height: 100%;
   }
 </style>

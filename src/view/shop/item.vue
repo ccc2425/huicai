@@ -1,18 +1,17 @@
 <template>
     <div>
-      <headerShare :title="title"></headerShare>
-      <itemBanner></itemBanner>
+      <headerBack :title="title"></headerBack>
+      <itemBanner :banner="banner"></itemBanner>
       <div class="box">
         <div class="box_in">
-          <div class="tit">2020春季新款时尚半开襟宽松立领卫衣女</div>
-          <div class="integral pr"><span>200</span>.00HC <img class="jifen" src="../../assets/image/a1.png" alt=""></div>
+          <div class="tit">{{list.title}}</div>
+          <div class="integral pr"><span>{{list.price}}</span>HC <img class="jifen" src="../../assets/image/a1.png" alt=""></div>
           <div class="num_box">
             <span @click="less">-</span><input type="number" readonly="true" v-model="num"><span @click="add">+</span>
           </div>
         </div>
       </div>
-      <div class="box padb60">
-        <img src="../../assets/image/ban1.png" alt="">
+      <div class="box padb60" v-html="list.detail">
       </div>
       <div class="foot flex_bettwen">
         <div @click="addCar">加入购物车</div>
@@ -22,21 +21,39 @@
 </template>
 
 <script>
-    import headerShare from '../../components/headerShare'
+    import headerBack from '../../components/headerBack'
     import itemBanner from '../../components/itemBanner'
+    import { Toast , Indicator } from 'mint-ui';
     export default {
       name: "item",
       components:{
-        headerShare,
-        itemBanner
+        headerBack,
+        itemBanner,
+        Toast,
+        Indicator
       },
       data(){
         return{
           title:'商品详情',
-          num:1
+          num:1,
+          id:this.$route.query.id,
+          list:'',
+          banner:[],
         }
       },
+      mounted(){
+        this.getmain()
+      },
       methods:{
+        getmain(){
+          this.$('shop/info',{item_id:this.id},res=>{
+            console.log(res)
+            if (res.code === 200){
+              this.list = res.data
+              this.banner = res.data.imgs
+            }
+          })
+        },
         less(){
           this.num--
           if (this.num<=0){
@@ -48,10 +65,22 @@
           this.num++
         },
         buy(){
-          this.$router.push('/shop/orderSure')
+          this.$router.push('/shop/orderSure??ids='+this.id+'&num='+this.num)
         },
         addCar(){
-          this.$router.push('/shop/shopCar')
+          Indicator.open();
+          this.$('shop/addcart',{item_id:this.id,num:this.num},res=>{
+            Indicator.close();
+            if (res.code === 200){
+              this.$router.push('/shop/shopCar?car=1')
+            }else {
+              Toast({
+                message: '添加失败',
+                position: 'middle',
+                duration: 500
+              });
+            }
+          })
         }
       }
     }
@@ -59,6 +88,7 @@
 
 <style scoped>
   .box{
+    width: 375px;
     background: #FFFFFF;
     padding: 10px;
     margin-bottom: 5px;
@@ -78,6 +108,7 @@
   }
   .integral{
     color: #FB4D4D;
+    margin-bottom: 10px;
   }
   .integral span{
     font-size: 24px;
@@ -106,7 +137,7 @@
   .jifen{
     position: absolute;
     top: -3px;
-    width: 25px;
+    width: 25px!important;
     height: 13px;
   }
   .foot{

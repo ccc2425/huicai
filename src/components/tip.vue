@@ -1,12 +1,13 @@
 <template>
   <div class="tip">
-    已发布广告数量：3
+    已发布广告数量：{{num}}
   </div>
 </template>
 
 <script>
     export default {
-        name: "tip"
+      name: "tip",
+      props:['num']
     }
 </script>
 

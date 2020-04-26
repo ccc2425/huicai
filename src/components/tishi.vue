@@ -18,7 +18,7 @@
     top: 40%;
     left: 50%;
     transform: translate(-50%,-50%);
-    padding: 0 10px;
+    padding: 3px 10px;
     line-height: 20px;
     background: rgba(0,0,0,0.6);
     color: #ffffff;

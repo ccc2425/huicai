@@ -1,12 +1,12 @@
 <template>
     <div class="list">
-      <div v-for="item in list" class="item" @click="openItem">
+      <div v-for="item in list" class="item" @click="openItem(item.item_id)">
         <div class="img_box">
-          <img :src="item.img" alt="">
+          <img :src="item.master_image" alt="">
         </div>
         <div class="text">
-          <div class="item_tit">{{item.tit}}</div>
-          <div class="item_text">代理价：<span>￥{{item.price}}</span></div>
+          <div class="item_tit">{{item.title}}</div>
+          <div class="item_text">价格：<span>{{item.price}}</span>HC</div>
         </div>
       </div>
     </div>
@@ -15,21 +15,14 @@
 <script>
     export default {
       name: "shopList",
+      props:['list'],
       data(){
         return{
-          list:[
-            {img:require('../assets/image/item.jpeg'),tit:"春款新品休闲连帽卫衣百搭单品",price:'99.0'},
-            {img:require('../assets/image/item.jpeg'),tit:"阿尔法蛋帆布袋",price:'99.0'},
-            {img:require('../assets/image/item.jpeg'),tit:"春款新品特别推出",price:'128.0'},
-            {img:require('../assets/image/item.jpeg'),tit:"还在等什么,买它~",price:'27.3'},
-            {img:require('../assets/image/item.jpeg'),tit:"雨师餐饮疫期不打烊",price:'11.1'},
-            {img:require('../assets/image/item.jpeg'),tit:"雨师餐饮疫期不打烊",price:'69.9',},
-          ]
         }
       },
       methods:{
-        openItem(){
-          this.$router.push('/shop/item')
+        openItem(id){
+          this.$router.push('/shop/item?id='+id)
         }
       }
     }
@@ -70,7 +63,7 @@
     padding: 0 5px;
   }
   .item_tit{
-    padding: 5px 0;
+    margin: 5px auto;
     color: #333333;
     font-size: 14px;
     text-overflow: -o-ellipsis-lastline;

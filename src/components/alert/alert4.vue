@@ -6,7 +6,7 @@
       <div class="text">
         <input class="iptcob ipt" type="text" placeholder="请输入交易密码" v-model="password">
       </div>
-      <div v-if="tipShow" class="tip">* 交易密码错误，请重新输入</div>
+      <div v-if="tipShow" class="tip">* {{tip}}</div>
       <div class="btns" @click="sure">确定</div>
     </div>
   </div>
@@ -15,24 +15,25 @@
 <script>
   export default {
     name: "alert4",
+    props:['tipShow','tip'],
     data(){
       return{
         password:'',
-        tipShow:false,
       }
     },
     methods:{
       sure(){
-        if (!this.password){
-          this.tipShow = true
-          return false
-        } else {
+        // if (!this.password){
+        //   this.tip = '交易密码不能为空'
+        //   this.tipShow = true
+        //   return false
+        // } else {
           this.$emit('getAlert',this.password)
-          this.$router.push('/shop/orderDetail')
-        }
+          // this.$router.push('/shop/orderDetail')
+        // }
       },
       close(){
-        this.$emit('getAlert',this.password)
+        this.$emit('getAlertClose',false)
       }
     }
   }
